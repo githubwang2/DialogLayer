@@ -42,9 +42,9 @@ bool DialogLayer::init(std::string str){
 	initStudioUI("DialogLayer/DialogLayer.json");
 	
 	conversation = FileUtils::getInstance()->getStringFromFile(str);
-	int index = 0;
-
-	getDateByIndex(index);
+	m_index = 0;
+	vecLength = 0;
+	getDateByIndex(m_index);
 
 	return true;
 }
@@ -69,16 +69,18 @@ void DialogLayer::getDateByIndex(int index){
 	_conVector.clear();
 	_isOver = false;
 	rapidjson::Value & array = doc["Conversation"];
-
+	//array是不是数组
 	if (array.IsArray())
 	{
 		int i = index;
 		int j = 0;
 		strVector.clear();
 		
-		if (i>array.Size())
+		if (i>=array.Size())		//	说明已经显示完全
 		{
+			CCLOG("显示完全 开始游戏内容");
 			this->removeFromParent();
+			//node->removeFromParent();
 			return;
 		}
 		for (j = 0; j < array[i]["content"].Size(); j++)
@@ -94,9 +96,11 @@ void DialogLayer::getDateByIndex(int index){
 		}
 		name->setString(_conVector[0]);
 		icon->loadTexture(_conVector[1]);
+		speetch->setString(_conVector[2]);
 	}
-	tempStr = "";
-	//schedule(schedule_selector(DialogLayer::touchDownAction));
+	//tempStr = "";
+	
+	schedule(schedule_selector(DialogLayer::MultUpdate));
 }
 
 void DialogLayer::showAllContent(){
@@ -106,10 +110,10 @@ void DialogLayer::showAllContent(){
 }
 
 void DialogLayer::initStudioUI(const char*jsonFile){
-	Node*node = GUIReader::getInstance()->widgetFromJsonFile(jsonFile);
+	node = GUIReader::getInstance()->widgetFromJsonFile(jsonFile);
 	Layout*layout = static_cast<Layout*>(node);
 	name = static_cast<Text*>(node->getChildByName("lblName"));
-	icon = static_cast<ImageView*>(node->getChildByName("img"));
+	icon = static_cast<ImageView*>(node->getChildByName("imgPlayer"));
 	speetch = static_cast<Text*>(node->getChildByName("lblText"));
 
 	layout->addTouchEventListener(CC_CALLBACK_2(DialogLayer::touchDownAction, this));
@@ -120,14 +124,17 @@ void DialogLayer::initStudioUI(const char*jsonFile){
 void DialogLayer::touchDownAction(Ref*sender, Widget::TouchEventType controlEvent){
 	if (controlEvent == Widget::TouchEventType::ENDED)
 	{
+		CCLOG("1");
 		if (_isOver==true)
 		{
-			index++;
-			getDateByIndex(index);
+			m_index++;
+			getDateByIndex(m_index);
+			CCLOG("2");
 		}
 		else
 		{
-
+			CCLOG("3");
+			this->showAllContent();
 		}
 	
 	}
